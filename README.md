@@ -2,20 +2,21 @@
 
 > **Edit what you said without saying it again.**
 
-Speech Surgeon is an AI-powered spoken-audio editing tool designed to repair small mistakes in an existing recording without requiring the speaker to record the changed part again.
+Speech Surgeon is an AI-powered spoken-content editing tool designed to repair small mistakes or changes in an existing recording without requiring the speaker to record the changed part again.
 
 The core idea is simple:
 
-1. Upload a spoken recording.
-2. Transcribe it into an editable, timestamped transcript.
-3. Select the sentence or phrase that needs to change.
-4. Replace the text.
-5. Reconstruct the edited speech using the original speaker's voice.
-6. Surgically fit the generated audio into the original recording.
-7. Compare the original and repaired versions.
-8. Export the repaired recording.
+1. Upload a video or audio recording.
+2. Speech Surgeon extracts/normalizes the audio when necessary.
+3. Fish Audio transcribes the speech into an editable, timestamped transcript.
+4. Select the sentence or phrase that needs to change.
+5. Replace the text.
+6. Reconstruct the edited speech using the original speaker's voice.
+7. Surgically fit the generated speech into the original audio.
+8. Compare the original and repaired versions.
+9. Export the repaired audio or repaired video.
 
-Speech Surgeon is **not** another text-to-speech wrapper. The goal is to make recorded speech behave more like an editable digital medium: instead of rerecording an entire take because of one mistake, the user can change the local spoken content and preserve the rest of the performance.
+Speech Surgeon is **not another text-to-speech wrapper**. The goal is to make recorded speech behave more like an editable digital medium: instead of rerecording an entire take because of one small mistake or post-recording change, a user can modify the local spoken content while preserving the rest of the original performance.
 
 ---
 
@@ -23,15 +24,16 @@ Speech Surgeon is **not** another text-to-speech wrapper. The goal is to make re
 
 Spoken content is often almost impossible to revise cleanly after recording.
 
-A creator, podcaster, journalist, teacher, interviewer, or marketing team may finish a recording and discover that one sentence contains:
+A creator, podcaster, teacher, developer advocate, marketing team, narrator, or production team may finish a recording and discover that one sentence contains:
 
 - an incorrect date
 - the wrong product name
 - an outdated price
 - a factual correction
-- a missed phrase
+- a changed URL or promo code
 - a pronunciation mistake
-- a small script change
+- a version number that has changed
+- a missed phrase
 - a wording change requested after recording
 
 With a traditional workflow, the options are usually:
@@ -47,13 +49,13 @@ Speech Surgeon explores a different workflow:
 ```text
 Record once
     ↓
-Find the mistake
+Find the mistake or outdated line
     ↓
 Edit the words
     ↓
-Reconstruct only the changed speech
+Reconstruct only the affected speech
     ↓
-Blend it into the original
+Blend it back into the original
     ↓
 Keep everything else untouched
 ```
@@ -72,55 +74,192 @@ The user should not need to record the sentence again.
 
 ---
 
-## Product Vision
+# Why This Matters
 
-Speech Surgeon is based on a simple product thesis:
+Speech Surgeon is based on a simple observation:
 
-> **If text can be edited after writing and images can be edited after capture, spoken recordings should also be editable after recording.**
+> **Digital content is increasingly editable after capture, but spoken recordings are still treated as largely fixed artifacts.**
 
-The long-term direction is to treat speech as an editable artifact with:
+Text can be edited after writing.
 
-- text-level edits
-- performance edits
-- localized edits
-- versions
-- history
-- precise reconstruction
-- eventually, video-aware repair
+Code can be patched after being written.
 
-The first version intentionally solves a much narrower problem: **high-quality phrase/sentence repair in a clean, single-speaker recording.**
+Images and video can be retouched after capture.
+
+Spoken recordings still commonly require a new take when one local part changes.
+
+Speech Surgeon explores a new editing primitive:
+
+```text
+record → transcribe → edit → reconstruct → patch
+```
+
+The product starts with small phrase/sentence repairs and can eventually grow into a broader system for maintaining, versioning, localizing, and creatively directing spoken media.
 
 ---
 
-## What Makes Speech Surgeon Different
+# Real-World Use Cases
 
-Speech Surgeon is deliberately positioned between a speech model and a full audio editor.
+Speech Surgeon is intentionally useful beyond a single generic “change a word” demo. The underlying engine can support many practical workflows where recorded speech becomes outdated or needs correction.
 
-### [Fish Audio](https://github.com/fishaudio) provides the speech intelligence
+## Creator & Sponsored Video Corrections
 
-Fish Audio is used for the parts that require high-quality speech understanding and speech generation:
+A creator finishes a sponsored video and the brand later changes:
+
+- the promo code
+- the discount
+- the price
+- a product name
+- a URL
+
+Instead of reshooting the entire video, the affected spoken line can be repaired.
+
+**Target users:** YouTubers, influencers, creator agencies, brand marketing teams, video editors.
+
+---
+
+## Podcast Sponsor Read Surgery
+
+A podcast host records a sponsor message and the advertiser later changes the offer or promo code.
+
+Speech Surgeon can target only the sponsor section instead of requiring another recording session.
+
+**Target users:** podcasters, podcast networks, advertisers, podcast production agencies.
+
+---
+
+## Developer Tutorial & DevRel Updates
+
+A software tutorial can become outdated when a company changes:
+
+- product names
+- UI labels
+- API versions
+- commands
+- pricing
+- feature names
+
+Speech Surgeon can repair the spoken references without rebuilding the entire recording.
+
+**Target users:** developer-relations teams, SaaS companies, technical educators, course creators.
+
+---
+
+## Online Course & EdTech Maintenance
+
+A teacher records hundreds of lessons and later needs to update a batch year, version number, policy, product name, or other small spoken reference.
+
+For example:
+
+> “This lesson is for the **2026 batch**.”
+
+can become:
+
+> “This lesson is for the **2027 batch**.”
+
+without forcing a complete rerecording.
+
+**Target users:** educators, coaching institutes, online course companies, instructional-design teams.
+
+---
+
+## Corporate Training Updates
+
+Internal training libraries can become stale when policies, product names, prices, or procedures change.
+
+Speech Surgeon can explore a workflow for repairing small spoken references while leaving the rest of the presentation intact.
+
+**Target users:** enterprise learning teams, HR/L&D teams, training agencies, internal communications teams.
+
+---
+
+## Product & Marketing Video Maintenance
+
+A company may have dozens or hundreds of product videos containing old:
+
+- pricing
+- release versions
+- feature names
+- campaign language
+- product terminology
+
+The long-term opportunity is to search transcripts across a content library and identify recordings that need surgical updates.
+
+**Target users:** SaaS marketing teams, product marketing teams, agencies, content operations teams.
+
+---
+
+## Audiobook & Narration Corrections
+
+Narrators and publishers sometimes discover a wrong name, date, pronunciation, or editorial change after recording.
+
+Speech Surgeon can explore local repair without regenerating the entire chapter.
+
+**Target users:** narrators, publishers, audiobook studios, voice-production teams.
+
+---
+
+## Documentary / Production ADR Patches
+
+A documentary or production voiceover may need a small factual or script correction after the original session.
+
+The long-term direction is to make localized ADR-style repairs faster while preserving the original performance around the edit.
+
+**Target users:** documentary teams, production houses, editors, post-production studios.
+
+---
+
+# Product Vision
+
+Speech Surgeon is based on a larger thesis:
+
+> **Recorded speech should become an editable digital artifact.**
+
+The initial version focuses on high-quality phrase/sentence repair in a clean, single-speaker recording.
+
+The longer-term direction can include:
+
+- text-level speech edits
+- performance edits
+- localized edits
+- edit history
+- versioning
+- library-wide content maintenance
+- video-aware repair
+- eventually, broader AI-assisted audio direction
+
+The first release intentionally solves a much narrower problem: **high-quality local reconstruction of spoken content.**
+
+---
+
+# What Makes Speech Surgeon Different
+
+Speech Surgeon is deliberately positioned between a speech model and a traditional audio editor.
+
+### Fish Audio provides the speech intelligence
+
+Fish Audio is used for the parts that require high-quality speech understanding and synthesis:
 
 - speech-to-text
 - timestamped transcription
-- private voice-model / voice-cloning workflows
+- speaker voice reconstruction / voice models
 - expressive speech synthesis
-- speaker identity reconstruction
 
 ### Speech Surgeon provides the editing layer
 
 Speech Surgeon is responsible for:
 
 - mapping transcript segments back to audio regions
-- letting the user edit the spoken content
+- letting the user edit spoken content
 - selecting the correct source region
 - constructing contextual generation input
-- deciding what should be regenerated
-- fitting generated audio to the source timing
+- preparing the surgery request
+- fitting generated speech to the source timing
 - handling boundaries and transitions
-- matching loudness and local characteristics
+- matching local loudness and characteristics
 - rebuilding the final recording
 - visualizing exactly what changed
-- keeping the original recording intact
+- preserving the original recording
 
 The central product value therefore comes from the combination:
 
@@ -152,7 +291,7 @@ The central product value therefore comes from the combination:
 
 ```mermaid
 flowchart TD
-    A["User uploads recording"] --> B["Audio preflight & normalization"]
+    A["User uploads video or audio"] --> B["Audio extraction / preflight / normalization"]
     B --> C["Fish Audio STT"]
     C --> D["Timestamped transcript"]
     D --> E["Waveform + transcript editor"]
@@ -163,13 +302,17 @@ flowchart TD
     I --> J["Fish Audio S2.1 Pro TTS"]
     J --> K["Generated replacement audio"]
     K --> L["Duration analysis"]
-    L --> M["Time fitting / controlled stretching"]
+    L --> M["Controlled time fitting"]
     M --> N["Boundary alignment"]
-    N --> O["Loudness / local tone matching"]
+    N --> O["Loudness / local characteristic matching"]
     O --> P["Crossfade + composition"]
-    P --> Q["Surgically repaired recording"]
-    Q --> R["Original vs repaired comparison"]
-    R --> S["Export"]
+    P --> Q["Surgically repaired audio"]
+    Q --> R{"Input was video?"}
+    R -- "No" --> S["Original vs repaired audio"]
+    R -- "Yes" --> T["Replace original video audio track"]
+    T --> U["Repaired video"]
+    S --> V["Export"]
+    U --> V
 ```
 
 ---
@@ -187,7 +330,7 @@ flowchart LR
     API --> FILES["Temporary File Manager"]
 
     FISH --> ASR["Fish STT"]
-    FISH --> VOICE["Fish Voice Model / Voice Clone"]
+    FISH --> VOICE["Fish Voice Model / Voice Reference"]
     FISH --> TTS["Fish S2.1 Pro TTS"]
 
     AUDIO --> FFMPEG["FFmpeg"]
@@ -195,8 +338,10 @@ flowchart LR
 
     FILES --> TMP["Temporary Session Storage"]
 
-    AUDIO --> FINAL["Original + Patch + Repaired Audio"]
-    FINAL --> WEB
+    AUDIO --> OUTPUT["Original + Patch + Repaired Audio"]
+    OUTPUT --> VIDEO["Optional Video Remux"]
+    VIDEO --> WEB
+    OUTPUT --> WEB
 ```
 
 ---
@@ -209,26 +354,34 @@ The primary experience is composed of three major states.
 
 ## 1. Upload
 
-The user sees:
+The user can upload a video or audio recording.
 
-> **Speech Surgeon**  
-> Edit what you said without saying it again.
-
-Then a simple upload area:
+Conceptually:
 
 ```text
 ┌────────────────────────────────────────────┐
 │                                            │
-│          Drop your recording here          │
+│          Drop video or audio here         │
 │                                            │
-│             WAV · MP3 · M4A                │
+│             MP4 · MOV · WAV               │
+│             MP3 · M4A                     │
 │                                            │
-│              [ Analyze ]                   │
+│              [ Analyze ]                  │
 │                                            │
 └────────────────────────────────────────────┘
 ```
 
-The first version should favor short, clean, single-speaker recordings so the reconstruction problem remains well controlled.
+Internally, the application becomes audio-first even when the source is a video:
+
+```text
+Video
+  ↓
+Extract audio
+  ↓
+Speech Surgeon audio pipeline
+```
+
+The MVP should favor short, clean, single-speaker recordings so the reconstruction problem remains well controlled.
 
 ---
 
@@ -292,6 +445,8 @@ Changed: 1 segment
                [ EXPORT ]
 ```
 
+For video input, the repaired audio can be remuxed back into the original video container so the user receives a repaired video as well.
+
 The interface should clearly show that the rest of the recording was preserved.
 
 ---
@@ -348,7 +503,7 @@ Responsibilities:
 - segment selection
 - surgery controls
 - processing status
-- audio comparison
+- audio/video comparison
 - export
 
 ### Tailwind CSS
@@ -399,6 +554,7 @@ Backend responsibilities include:
 
 - session management
 - upload handling
+- audio extraction
 - audio preflight
 - audio normalization
 - Fish API calls
@@ -406,6 +562,7 @@ Backend responsibilities include:
 - voice-model preparation
 - surgery orchestration
 - audio rendering
+- optional video remuxing
 - file cleanup
 - error handling
 
@@ -419,7 +576,7 @@ Speech Surgeon is built around three primary Fish capabilities for the MVP.
 
 The recording is sent through Fish's speech recognition API to obtain transcript content and timing information.
 
-The Fish API exposes an ASR endpoint capable of returning timestamped segments when timestamping is enabled.
+The application uses timestamped transcript segments as the editing map between text and audio.
 
 Conceptually:
 
@@ -431,7 +588,7 @@ Conceptually:
 }
 ```
 
-Documentation:
+Fish API documentation:
 
 - https://docs.fish.audio/api-reference/endpoint/openapi-v1/speech-to-text
 
@@ -439,19 +596,21 @@ The application converts the provider response into its own normalized transcrip
 
 ---
 
-## 2. Fish Voice Model / Voice Cloning
+## 2. Fish Voice Model / Voice Reference
 
-Speech Surgeon needs a way to reconstruct the changed speech while preserving the identity of the original speaker.
+Speech Surgeon needs a way to reconstruct changed speech while preserving the identity of the original speaker.
 
-The planned approach is to create or use a private voice model from an authorized voice reference extracted from the uploaded recording.
+The planned approach is to create or use a private speaker voice model/reference from authorized source audio.
 
-The Fish API documents private model creation and fast voice-model creation workflows.
-
-Documentation:
+Fish API documentation:
 
 - https://docs.fish.audio/api-reference/endpoint/model/create-model
 
 Voice assets should be treated as session-scoped material in the MVP.
+
+The product should make this process invisible to the user where possible:
+
+> **Use the voice from this recording.**
 
 ---
 
@@ -459,9 +618,9 @@ Voice assets should be treated as session-scoped material in the MVP.
 
 Fish S2.1 Pro is used to synthesize the edited phrase using the prepared speaker voice.
 
-The current Fish TTS API supports a voice `reference_id` or reference audio and exposes expressive/prosody-related controls.
+Fish's current product positioning emphasizes expressive speech and natural-language voice direction, which provides a path for future “performance surgery” features in addition to simple text replacement.
 
-Documentation:
+Fish API documentation:
 
 - https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech
 
@@ -469,30 +628,30 @@ Model documentation:
 
 - https://docs.fish.audio/developer-guide/models-pricing/models-overview
 
-The generation should be contextual rather than blindly synthesizing a single replacement word whenever possible.
-
 ---
 
-# Fish API Responsibilities vs Application Responsibilities
+# Fish Audio Responsibilities vs Speech Surgeon Responsibilities
 
 | Stage | Speech Surgeon | Fish Audio |
-|---|---|---|
-| Upload | ✅ | |
+|---|---:|---:|
+| Video/audio upload | ✅ | |
 | File validation | ✅ | |
+| Audio extraction | ✅ | |
 | Audio normalization | ✅ | |
 | Speech recognition | | ✅ |
 | Timestamped transcript | | ✅ |
 | Transcript editor | ✅ | |
 | User edit | ✅ | |
 | Voice preparation | | ✅ |
-| Voice reconstruction | | ✅ |
+| Speaker voice reconstruction | | ✅ |
 | TTS generation | | ✅ |
 | Duration analysis | ✅ | |
 | Timing fit | ✅ | |
 | Boundary handling | ✅ | |
 | Crossfade | ✅ | |
 | Loudness matching | ✅ | |
-| Final composition | ✅ | |
+| Final audio composition | ✅ | |
+| Video audio-track replacement | ✅ | |
 | Original/repaired comparison | ✅ | |
 | Export | ✅ | |
 
@@ -500,9 +659,63 @@ The boundary is intentional: **Fish provides speech intelligence; Speech Surgeon
 
 ---
 
-# Audio Pipeline
+# Audio Surgery Engine
 
-The core audio pipeline is the most important technical part of the project.
+The surgery engine is the central application-specific component.
+
+Conceptually:
+
+```text
+SurgeryRequest
+    │
+    ├── session
+    ├── source segment
+    ├── original text
+    ├── replacement text
+    └── speaker voice
+          │
+          ▼
+    validate request
+          │
+          ▼
+    extract target region
+          │
+          ▼
+    construct TTS context
+          │
+          ▼
+    generate replacement
+          │
+          ▼
+    analyze duration
+          │
+          ▼
+    fit timing
+          │
+          ▼
+    align boundaries
+          │
+          ▼
+    match loudness / local characteristics
+          │
+          ▼
+    crossfade
+          │
+          ▼
+    assemble final audio
+```
+
+This layer is deliberately kept separate from the Fish client.
+
+That means:
+
+- Fish integration can change independently.
+- Audio processing can improve independently.
+- The frontend does not need to know how either implementation works.
+
+---
+
+# Audio Pipeline
 
 ```mermaid
 flowchart TD
@@ -510,15 +723,19 @@ flowchart TD
     B --> C["Transcribe with Fish"]
     C --> D["Identify target segment"]
     D --> E["Extract local context"]
-    E --> F["Prepare speaker voice"]
+    E --> F["Prepare authorized speaker voice"]
     F --> G["Generate replacement with Fish S2.1 Pro"]
     G --> H["Measure generated duration"]
     H --> I["Controlled time fitting"]
-    I --> J["Find / refine boundaries"]
+    I --> J["Refine boundaries"]
     J --> K["Match loudness / local characteristics"]
     K --> L["Crossfade replacement"]
     L --> M["Reassemble original + patch"]
-    M --> N["Render final WAV / export format"]
+    M --> N["Render final audio"]
+    N --> O{"Source was video?"}
+    O -- "No" --> P["Audio export"]
+    O -- "Yes" --> Q["Replace original video audio track"]
+    Q --> R["Video export"]
 ```
 
 ---
@@ -544,7 +761,7 @@ The MVP should prefer:
 - clear speech
 - limited background noise
 - limited reverberation
-- no overlapping speakers
+- no overlapping speech
 
 ---
 
@@ -631,7 +848,7 @@ If the replacement is substantially longer or shorter than the source, the UI ca
 
 Example:
 
-> **This edit changes the rhythm substantially. Try a shorter replacement for a more natural result.**
+> **This replacement changes the rhythm substantially. Try a shorter phrase for a more natural result.**
 
 ---
 
@@ -677,6 +894,36 @@ Later iterations may also include more advanced local spectral/tone matching.
 
 ---
 
+# Video Handling
+
+Video support is intentionally thin in the MVP.
+
+Speech Surgeon does not attempt to become a full video editor.
+
+The video path is:
+
+```text
+Input MP4/MOV
+     ↓
+Extract audio
+     ↓
+Perform Speech Surgeon surgery
+     ↓
+Render repaired audio
+     ↓
+Replace original audio track
+     ↓
+Export repaired video
+```
+
+The visual track should remain unchanged.
+
+The first public demonstration should favor edits whose spoken replacement is naturally compatible with the speaker's visible performance rather than making perfect audiovisual lip-sync a core engineering requirement.
+
+Advanced audiovisual alignment can be explored later if the product requires it.
+
+---
+
 # Audio File Strategy
 
 The original recording should never be overwritten.
@@ -685,7 +932,7 @@ A session may contain:
 
 ```text
 session_xxx/
-├── original.wav
+├── original_source
 ├── normalized.wav
 ├── transcript.json
 ├── reference.wav
@@ -715,6 +962,7 @@ POST   /api/sessions/:id/surgery
 GET    /api/sessions/:id
 GET    /api/sessions/:id/audio/original
 GET    /api/sessions/:id/audio/repaired
+GET    /api/sessions/:id/video/repaired
 
 DELETE /api/sessions/:id
 ```
@@ -753,6 +1001,7 @@ Failure states should be explicit:
 
 ```text
 ERROR_UPLOAD
+ERROR_PREPROCESSING
 ERROR_TRANSCRIPTION
 ERROR_VOICE
 ERROR_TTS
@@ -813,6 +1062,8 @@ API orchestration
 Fish integration
    +
 Audio surgery engine
+   ↓
+Optional video remuxing
 ```
 
 ---
@@ -828,12 +1079,12 @@ Audio surgery engine
 | Components | shadcn/ui | Reusable interface primitives |
 | Waveform | wavesurfer.js | Audio visualization and regions |
 | Backend | Python + FastAPI | API and orchestration |
-| Audio CLI | FFmpeg | Conversion, composition, export |
+| Audio CLI | FFmpeg | Conversion, composition, export, video remuxing |
 | Audio processing | Python audio tooling | Analysis and signal processing |
 | Speech recognition | Fish Audio STT | Transcript generation |
-| Voice reconstruction | Fish Audio voice model | Speaker identity |
+| Voice reconstruction | Fish Audio Voice Models | Speaker identity |
 | Speech synthesis | Fish Audio S2.1 Pro | Replacement speech generation |
-| MVP storage | Temporary files | Session-scoped audio assets |
+| MVP storage | Temporary files | Session-scoped audio/video assets |
 | Future storage | S3/R2-compatible object storage | Persistent project assets |
 | Future database | PostgreSQL | Persistent projects/version history |
 
@@ -843,15 +1094,16 @@ Audio surgery engine
 
 ## Supported
 
-- clean spoken recordings
+- short video or audio recordings
 - single speaker
-- short sessions
+- clean spoken content
 - phrase/sentence replacement
 - same-language editing
 - authorized speaker voice reconstruction
 - waveform + transcript editing
 - original/repaired A/B comparison
-- downloadable output
+- audio export
+- repaired video export when the input is video
 
 ## Not part of the first version
 
@@ -862,14 +1114,172 @@ Audio surgery engine
 - unrestricted word-level replacement
 - automatic fact checking
 - automatic script correction
-- full video editing
+- advanced lip-sync correction
+- automatic mass-library updating
 - multilingual surgery
 - public voice marketplace
 - account/team management
 - billing
 - social sharing inside the application
 
-These are intentionally deferred so the first version can focus on reconstruction quality.
+These are intentionally deferred so the first version can focus on reconstruction quality and a convincing user workflow.
+
+---
+
+# Product Demonstration Concept
+
+The public demonstration is designed around a very recognizable production problem.
+
+### Setup
+
+A creator records a short video or spoken clip.
+
+### Mistake
+
+A line becomes outdated or incorrect after recording.
+
+Example scenarios:
+
+```text
+Sponsor code changed
+Product name changed
+Price changed
+Date changed
+Version changed
+Course batch year changed
+```
+
+### Repair
+
+The user opens Speech Surgeon, edits the transcript, and clicks **SURGERIZE**.
+
+### Result
+
+The corrected line plays in the same speaker's voice while the rest of the recording remains unchanged.
+
+The strongest demonstration is one where the before/after difference is obvious to the viewer but the actual product interaction remains simple:
+
+```text
+Original recording
+       ↓
+“This offer uses code SAVE20.”
+       ↓
+Edit transcript
+       ↓
+“This offer uses code SAVE25.”
+       ↓
+SURGERIZE
+       ↓
+Repaired recording
+```
+
+The exact demonstration scenario may change, but the principle remains: **show a realistic reason someone would need a post-recording correction.**
+
+---
+
+# Quality Criteria
+
+The central product question is not whether Fish can pronounce the replacement.
+
+The question is whether the replacement **sounds like it belonged in the original recording**.
+
+Speech Surgeon should evaluate every surgery against:
+
+## 1. Voice Identity
+
+Does the replacement sound like the same speaker?
+
+## 2. Continuity
+
+Does it fit the surrounding speech naturally?
+
+## 3. Timing
+
+Does the replacement preserve the original pacing closely enough?
+
+## 4. Boundary Quality
+
+Can the splice be heard?
+
+## 5. Loudness
+
+Is the replacement noticeably louder or quieter?
+
+## 6. Text Accuracy
+
+Did the generated audio actually say what the user requested?
+
+## 7. Overall Plausibility
+
+Would a listener believe the revised sentence was part of the original take?
+
+For video input, an additional consideration is:
+
+## 8. Visual Compatibility
+
+Does the replacement avoid creating an obvious audiovisual mismatch with the source footage?
+
+Perfect lip-sync is not a first-release requirement; the product should first optimize for convincing audio reconstruction.
+
+---
+
+# Evaluation Examples
+
+A small controlled evaluation set should be used during development.
+
+### Test 1 — short substitution
+
+```text
+March → May
+```
+
+### Test 2 — date change
+
+```text
+March → September
+```
+
+### Test 3 — number change
+
+```text
+3,000 → 5,000
+```
+
+### Test 4 — product name change
+
+```text
+Product Alpha → Product Beta
+```
+
+### Test 5 — sponsor code
+
+```text
+SAVE20 → SAVE25
+```
+
+### Test 6 — version change
+
+```text
+Version 2.4 → Version 3.0
+```
+
+### Test 7 — proper noun
+
+Replace a company, person, product, or location name.
+
+### Test 8 — moderately longer replacement
+
+Use a replacement that expands the phrase length but remains within a practical timing range.
+
+### Test 9 — expressive sentence
+
+Use an excited or emotional sentence to test performance continuity.
+
+### Test 10 — pronunciation-sensitive text
+
+Use words with difficult phonetic transitions.
+
+The same source recording should be reused when comparing algorithmic improvements.
 
 ---
 
@@ -884,7 +1294,7 @@ The product should be positioned around use cases such as:
 - repairing the user's own content
 - correcting authorized interviews
 - fixing company-owned recordings
-- revising permitted voice talent recordings
+- revising permitted voice-talent recordings
 
 The product should not encourage unauthorized impersonation or cloning of public figures or other people without permission.
 
@@ -930,97 +1340,15 @@ The application should report problems in product language rather than exposing 
 
 > **This replacement changes the rhythm substantially. Try a shorter phrase.**
 
+### Unsupported video/editing condition
+
+> **This recording needs a simpler edit for the current version of Speech Surgeon.**
+
 ### Fish/API failure
 
 > **The speech service could not complete this request. Please try again.**
 
 The frontend should never expose API credentials or raw internal configuration.
-
----
-
-# Quality Criteria
-
-The central product question is not whether Fish can pronounce the replacement.
-
-The question is whether the replacement **sounds like it belonged in the original recording**.
-
-Speech Surgeon should evaluate every surgery against:
-
-## 1. Voice Identity
-
-Does the replacement sound like the same speaker?
-
-## 2. Continuity
-
-Does it fit the surrounding speech naturally?
-
-## 3. Timing
-
-Does the replacement preserve the original pacing closely enough?
-
-## 4. Boundary Quality
-
-Can the splice be heard?
-
-## 5. Loudness
-
-Is the replacement noticeably louder or quieter?
-
-## 6. Text Accuracy
-
-Did the generated audio actually say what the user requested?
-
-## 7. Overall Plausibility
-
-Would a listener believe the revised sentence was part of the original take?
-
----
-
-# Evaluation Examples
-
-A small controlled evaluation set should be used during development.
-
-### Test 1 — short substitution
-
-```text
-March → May
-```
-
-### Test 2 — date change
-
-```text
-March → September
-```
-
-### Test 3 — number change
-
-```text
-3,000 → 5,000
-```
-
-### Test 4 — product name change
-
-```text
-Product Alpha → Product Beta
-```
-
-### Test 5 — proper noun
-
-Replace a company/person/product name.
-
-### Test 6 — slightly longer replacement
-
-Use a replacement that expands the phrase length moderately.
-
-### Test 7 — expressive sentence
-
-Use an excited or emotional sentence to test performance continuity.
-
-### Test 8 — pronunciation-sensitive text
-
-Use words with difficult phonetic transitions.
-
-The same source recording should be reused when comparing algorithmic improvements.
 
 ---
 
@@ -1049,6 +1377,10 @@ The user should always understand which portion was modified.
 ## Fail honestly
 
 Not every recording or edit will be equally reconstructible.
+
+## Video stays thin
+
+Video support exists to deliver a practical end-to-end creator workflow; Speech Surgeon is fundamentally an audio-reconstruction product, not a general-purpose video editor.
 
 ## Voice ownership matters
 
@@ -1098,9 +1430,29 @@ patch Spanish
 
 ---
 
+## Library-Wide Content Maintenance
+
+Search transcripts across a content library and identify every recording containing an outdated term.
+
+Example:
+
+```text
+Product name changed:
+Atlas → Orbit
+
+Video 01  → 3 matches
+Video 04  → 1 match
+Video 07  → 4 matches
+Video 12  → 2 matches
+```
+
+A future workflow could allow approved bulk surgery across selected recordings.
+
+---
+
 ## Video Surgery
 
-Extend the same concept into video workflows:
+Extend the same concept into more advanced video workflows:
 
 ```text
 Video
@@ -1111,10 +1463,12 @@ Speech Surgeon
   ↓
 Patch audio
   ↓
-Reinsert audio
+Replace audio track
   ↓
 Export video
 ```
+
+Future versions can explore stronger audiovisual alignment where needed.
 
 ---
 
@@ -1155,7 +1509,7 @@ Speech Surgeon would then become a focused first step toward a broader **AI-nati
 
 ---
 
-# Product Roadmap Concept
+# Product Evolution
 
 ```text
 Speech Surgeon
@@ -1168,6 +1522,8 @@ Speech Surgeon
       │       ↓
       ├── Multilingual Surgery
       │       ↓
+      ├── Library-Wide Maintenance
+      │       ↓
       ├── Video Surgery
       │       ↓
       ├── Surgery History / Voice Git
@@ -1175,7 +1531,7 @@ Speech Surgeon
       └── AI Audio Director
 ```
 
-The roadmap is intentionally directional rather than a promise that every future feature will be implemented.
+This is a directional product vision rather than a promise that every future feature will be implemented.
 
 ---
 
@@ -1184,9 +1540,9 @@ The roadmap is intentionally directional rather than a promise that every future
 A complete surgery for a simple recording may look like this:
 
 ```text
-1. User uploads recording
+1. User uploads video/audio
           ↓
-2. Speech Surgeon normalizes the audio
+2. Speech Surgeon extracts/normalizes audio when needed
           ↓
 3. Fish STT produces transcript + timestamps
           ↓
@@ -1196,7 +1552,7 @@ A complete surgery for a simple recording may look like this:
           ↓
 6. Speech Surgeon prepares a clean speaker reference
           ↓
-7. Fish voice model is prepared/selected
+7. Fish voice model/reference is prepared
           ↓
 8. Fish S2.1 Pro generates contextual replacement speech
           ↓
@@ -1210,18 +1566,20 @@ A complete surgery for a simple recording may look like this:
           ↓
 13. Patch is crossfaded into source
           ↓
-14. Repaired recording is rendered
+14. Repaired audio is rendered
           ↓
-15. User compares original vs repaired
+15. If input was video, repaired audio replaces the source audio track
           ↓
-16. User exports repaired audio
+16. User compares original vs repaired
+          ↓
+17. User exports the repaired result
 ```
 
 ---
 
 # What Speech Surgeon Is Trying to Prove
 
-The core prototype is testing one very specific hypothesis:
+The prototype is testing one specific hypothesis:
 
 > **A recorded voice can be treated as editable content rather than a fixed artifact.**
 
@@ -1239,6 +1597,8 @@ Reconstruct
 Blend
       ↓
 Version
+      ↓
+Maintain
       ↓
 Localize
       ↓
@@ -1283,7 +1643,7 @@ Model overview:
 
 **Early development / prototype**
 
-The architecture and product direction are defined around high-quality single-speaker phrase/sentence repair. The project is focused on validating the reconstruction and audio-surgery pipeline before expanding into larger editing, localization, versioning, and creative-audio workflows.
+The product direction is defined around high-quality single-speaker phrase/sentence repair with optional video input/output. The current focus is validating the reconstruction and audio-surgery pipeline before expanding into longer-form, multilingual, versioned, or performance-aware workflows.
 
 ---
 
