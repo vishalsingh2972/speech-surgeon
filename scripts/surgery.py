@@ -1,13 +1,34 @@
 import subprocess
 from pathlib import Path
 
+from find_target import find_target
+
 
 ORIGINAL_PATH = Path("samples/original.wav")
 REPLACEMENT_PATH = Path("samples/replacement.wav")
 OUTPUT_PATH = Path("samples/repaired.wav")
 
-TARGET_START = 4.32
-TARGET_END = 10.08
+
+TARGET_WORDS = [
+    "we",
+    "launched",
+    "the",
+    "first",
+    "version",
+    "in",
+    "march",
+    "and",
+    "more",
+    "than",
+    "3000",
+    "people",
+    "tried",
+    "it",
+    "during",
+    "the",
+    "first",
+    "week",
+]
 
 
 def run_ffmpeg(args):
@@ -26,7 +47,20 @@ def run_ffmpeg(args):
 
 print("Speech Surgeon")
 print("================")
-print(f"Target: {TARGET_START:.2f}s → {TARGET_END:.2f}s")
+print("Finding target sentence...")
+
+target = find_target(
+    str(ORIGINAL_PATH),
+    TARGET_WORDS,
+)
+
+TARGET_START = target["start"]
+TARGET_END = target["end"]
+
+print(
+    f"Target: {TARGET_START:.2f}s → "
+    f"{TARGET_END:.2f}s"
+)
 print()
 
 print("Extracting audio before target...")
