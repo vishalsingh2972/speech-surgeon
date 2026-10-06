@@ -30,8 +30,8 @@ export default function Home() {
   const [repairedVideoUrl, setRepairedVideoUrl] = useState("");
 
   /*
-   * Keep the original video URL alive until the component
-   * actually unmounts or we explicitly replace it.
+   * Keep the original video URL alive until it is replaced
+   * or the component actually unmounts.
    */
   useEffect(() => {
     return () => {
@@ -62,22 +62,33 @@ export default function Home() {
       return;
     }
 
+    /*
+     * Create the new preview URL first.
+     */
+    const newOriginalVideoUrl =
+      URL.createObjectURL(selectedFile);
+
+    /*
+     * Revoke the old original URL.
+     */
     if (originalVideoUrl) {
       URL.revokeObjectURL(originalVideoUrl);
     }
 
+    /*
+     * Revoke any previous repaired video URL.
+     */
     if (repairedVideoUrl) {
       URL.revokeObjectURL(repairedVideoUrl);
     }
 
-    const newOriginalVideoUrl =
-      URL.createObjectURL(selectedFile);
-
     setFile(selectedFile);
     setOriginalVideoUrl(newOriginalVideoUrl);
+
     setTranscript("");
     setSessionId("");
     setRepairedVideoUrl("");
+    setLoading(false);
     setStep("upload");
   }
 
@@ -369,42 +380,101 @@ export default function Home() {
 
                 </div>
 
-                <label className="group flex min-h-72 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/70 px-6 transition-all hover:border-zinc-500 hover:bg-zinc-950">
+                {!originalVideoUrl ? (
 
-                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 transition-transform group-hover:scale-105">
+                  /* EMPTY UPLOAD STATE */
 
-                    {file ? (
-                      <FileVideo className="h-6 w-6 text-zinc-300" />
-                    ) : (
+                  <label className="group flex min-h-72 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/70 px-6 transition-all hover:border-zinc-500 hover:bg-zinc-950">
+
+                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 transition-transform group-hover:scale-105">
+
                       <Upload className="h-6 w-6 text-zinc-500" />
-                    )}
+
+                    </div>
+
+                    <span className="text-sm font-medium text-zinc-200">
+                      Choose a video
+                    </span>
+
+                    <span className="mt-2 text-sm text-zinc-600">
+                      Click to browse your files
+                    </span>
+
+                    <input
+                      type="file"
+                      accept="video/mp4,video/quicktime,video/webm"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+
+                  </label>
+
+                ) : (
+
+                  /* VIDEO PREVIEW STATE */
+
+                  <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
+
+                    <div className="aspect-video bg-black">
+
+                      <video
+                        controls
+                        playsInline
+                        preload="metadata"
+                        src={originalVideoUrl}
+                        className="h-full w-full object-contain"
+                      />
+
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 border-t border-zinc-800 px-4 py-3">
+
+                      <div className="flex min-w-0 items-center gap-3">
+
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900">
+
+                          <FileVideo className="h-4 w-4 text-zinc-400" />
+
+                        </div>
+
+                        <div className="min-w-0">
+
+                          <p className="truncate text-sm font-medium text-zinc-200">
+                            {file?.name}
+                          </p>
+
+                          <p className="mt-0.5 text-xs text-zinc-600">
+                            {file
+                              ? `${(
+                                  file.size /
+                                  1024 /
+                                  1024
+                                ).toFixed(2)} MB`
+                              : "Original video"}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      <label className="shrink-0 cursor-pointer rounded-lg border border-zinc-800 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200">
+
+                        Change video
+
+                        <input
+                          type="file"
+                          accept="video/mp4,video/quicktime,video/webm"
+                          className="hidden"
+                          onChange={handleFileChange}
+                        />
+
+                      </label>
+
+                    </div>
 
                   </div>
 
-                  <span className="text-sm font-medium text-zinc-200">
-                    {file
-                      ? file.name
-                      : "Choose a video"}
-                  </span>
-
-                  <span className="mt-2 text-sm text-zinc-600">
-                    {file
-                      ? `${(
-                          file.size /
-                          1024 /
-                          1024
-                        ).toFixed(2)} MB`
-                      : "Click to browse your files"}
-                  </span>
-
-                  <input
-                    type="file"
-                    accept="video/mp4,video/quicktime,video/webm"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-
-                </label>
+                )}
 
                 <button
                   type="button"
@@ -561,7 +631,9 @@ export default function Home() {
                   }}
                   className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-950"
                 >
+
                   <WandSparkles className="h-7 w-7 text-zinc-300" />
+
                 </motion.div>
 
                 <h2 className="mt-7 text-2xl font-semibold">
@@ -617,7 +689,9 @@ export default function Home() {
                 <div className="text-center">
 
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-zinc-700 bg-white text-black">
+
                     <Check className="h-6 w-6" />
+
                   </div>
 
                   <h2 className="mt-5 text-2xl font-semibold">
@@ -709,8 +783,11 @@ export default function Home() {
                     onClick={downloadVideo}
                     className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-zinc-200"
                   >
+
                     <Download className="h-4 w-4" />
+
                     Download repaired video
+
                   </button>
 
                   <button
@@ -718,8 +795,11 @@ export default function Home() {
                     onClick={startOver}
                     className="flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-5 py-3.5 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-900"
                   >
+
                     <ArrowLeft className="h-4 w-4" />
+
                     Start another video
+
                   </button>
 
                 </div>
