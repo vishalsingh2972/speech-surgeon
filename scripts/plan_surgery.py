@@ -1,5 +1,7 @@
 from difflib import SequenceMatcher
 
+from find_target import find_target
+
 
 ORIGINAL_TEXT = (
     "We launched the first version in March, "
@@ -14,8 +16,26 @@ EDITED_TEXT = (
 )
 
 
-ORIGINAL_START = 4.32
-ORIGINAL_END = 10.08
+TARGET_WORDS = [
+    "we",
+    "launched",
+    "the",
+    "first",
+    "version",
+    "in",
+    "march",
+    "and",
+    "more",
+    "than",
+    "3000",
+    "people",
+    "tried",
+    "it",
+    "during",
+    "the",
+    "first",
+    "week",
+]
 
 
 def detect_changes(original, edited):
@@ -44,23 +64,32 @@ def detect_changes(original, edited):
     return changes
 
 
-changes = detect_changes(
-    ORIGINAL_TEXT,
-    EDITED_TEXT,
-)
-
-
 print()
 print("Surgery plan")
 print("============")
 print()
 
+print("Finding target sentence...")
+
+target = find_target(
+    "samples/original.wav",
+    TARGET_WORDS,
+)
+
+original_start = target["start"]
+original_end = target["end"]
+
 print(
     f"Original audio region: "
-    f"{ORIGINAL_START:.2f}s → {ORIGINAL_END:.2f}s"
+    f"{original_start:.2f}s → {original_end:.2f}s"
 )
 
 print()
+
+changes = detect_changes(
+    ORIGINAL_TEXT,
+    EDITED_TEXT,
+)
 
 print("Detected edits:")
 
