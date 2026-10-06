@@ -15,10 +15,10 @@ url = "https://api.fish.audio/v1/asr"
 
 headers = {
     "Authorization": f"Bearer {api_key}",
+    "model": "transcribe-1-pro",
 }
 
 data = {
-    "model": "transcribe-1",
     "ignore_timestamps": "false",
 }
 
@@ -52,6 +52,14 @@ for segment in result.get("segments", []):
     print(
         f"[{segment['start']:.2f}s → {segment['end']:.2f}s] "
         f"{segment['text']}"
+    )
+
+print("\n========== SPEAKER TURNS ==========\n")
+
+for turn in result.get("speaker_turns", []):
+    print(
+        f"[{turn['start']:.2f}s → {turn['end']:.2f}s] "
+        f"{turn.get('speaker')}: {turn['text']}"
     )
 
 print("\n========== RAW RESPONSE ==========\n")

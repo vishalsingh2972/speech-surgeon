@@ -5,3 +5,8 @@ __pycache__/
 tmp/
 uploads/
 outputs/
+
+samples/*.wav
+samples/*.mp3
+samples/*.m4a
+samples/*.opus
