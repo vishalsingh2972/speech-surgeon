@@ -1,4 +1,6 @@
 import os
+import time
+import uuid
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -26,8 +28,9 @@ load_dotenv()
 
 app = FastAPI(
     title="Speech Surgeon API",
-    version="0.1.0",
+    version="0.2.0",
 )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -280,6 +283,160 @@ def generate_replacement(
 
 
 # --------------------------------------------------
+# Sync Labs lip-sync
+# --------------------------------------------------
+
+def generate_lipsync(
+    video_path,
+    audio_path,
+    output_path,
+):
+    api_key = os.getenv("SYNC_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "SYNC_API_KEY is missing from .env"
+        )
+
+    video_path = Path(video_path)
+    audio_path = Path(audio_path)
+    output_path = Path(output_path)
+
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    idempotency_key = (
+        f"speech-surgeon-lipsync-{uuid.uuid4()}"
+    )
+
+    headers = {
+        "x-api-key": api_key,
+        "Idempotency-Key": idempotency_key,
+    }
+
+    print()
+    print("================================")
+    print(" Sync Labs Lip-Sync")
+    print("================================")
+    print()
+    print(f"Video: {video_path}")
+    print(f"Audio: {audio_path}")
+    print()
+
+    with open(video_path, "rb") as video_file, \
+         open(audio_path, "rb") as audio_file:
+
+        response = requests.post(
+            "https://api.sync.so/v2/generate",
+            headers=headers,
+            files={
+                "video": (
+                    video_path.name,
+                    video_file,
+                    "video/mp4",
+                ),
+                "audio": (
+                    audio_path.name,
+                    audio_file,
+                    "audio/wav",
+                ),
+            },
+            data={
+                "model": "lipsync-2",
+                "options": (
+                    '{"sync_mode":"cut_off"}'
+                ),
+            },
+            timeout=120,
+        )
+
+    response.raise_for_status()
+
+    job = response.json()
+
+    job_id = job["id"]
+
+    print(
+        f"Sync Labs job created: {job_id}"
+    )
+    print(
+        f"Initial status: {job.get('status')}"
+    )
+    print()
+
+    while True:
+        response = requests.get(
+            f"https://api.sync.so/v2/generate/{job_id}",
+            headers={
+                "x-api-key": api_key,
+            },
+            timeout=60,
+        )
+
+        response.raise_for_status()
+
+        result = response.json()
+
+        status = result.get("status")
+
+        print(
+            f"Sync Labs status: {status}"
+        )
+
+        if status == "COMPLETED":
+            output_url = result.get(
+                "outputUrl"
+            )
+
+            if not output_url:
+                raise RuntimeError(
+                    "Sync Labs completed without "
+                    "an output URL."
+                )
+
+            print()
+            print(
+                "Downloading lip-synced video..."
+            )
+
+            video_response = requests.get(
+                output_url,
+                timeout=120,
+            )
+
+            video_response.raise_for_status()
+
+            output_path.write_bytes(
+                video_response.content
+            )
+
+            print(
+                f"Lip-synced video created: "
+                f"{output_path}"
+            )
+
+            return
+
+        if status in {
+            "FAILED",
+            "REJECTED",
+        }:
+            error = result.get(
+                "error",
+                "Unknown Sync Labs error.",
+            )
+
+            raise RuntimeError(
+                f"Sync Labs lip-sync failed: "
+                f"{error}"
+            )
+
+        time.sleep(5)
+
+
+# --------------------------------------------------
 # Repair endpoint
 # --------------------------------------------------
 
@@ -365,7 +522,7 @@ async def repair(
         # ------------------------------------------
 
         replacement_path = Path(
-            "outputs/replacement.wav"
+            f"outputs/replacement-{session_id}.wav"
         )
 
         replacement_path.parent.mkdir(
@@ -384,7 +541,7 @@ async def repair(
         # ------------------------------------------
 
         output_path = Path(
-            "outputs/repaired.wav"
+            f"outputs/repaired-{session_id}.wav"
         )
 
         repair_audio(
@@ -396,7 +553,30 @@ async def repair(
         )
 
         # ------------------------------------------
-        # 7. Load original video
+        # 7. Store repaired audio in session
+        # ------------------------------------------
+
+        session[
+            "repaired_audio_bytes"
+        ] = output_path.read_bytes()
+
+        session[
+            "changed_region"
+        ] = {
+            "start": target["start"],
+            "end": target["end"],
+        }
+
+        session[
+            "original_sentence"
+        ] = original_sentence
+
+        session[
+            "edited_sentence"
+        ] = edited_sentence
+
+        # ------------------------------------------
+        # 8. Load original video
         # ------------------------------------------
 
         video_bytes = session.get(
@@ -405,11 +585,12 @@ async def repair(
 
         if video_bytes is None:
             raise RuntimeError(
-                "Original video is missing from session."
+                "Original video is missing "
+                "from session."
             )
 
         original_video_path = Path(
-            "outputs/original.mp4"
+            f"outputs/original-{session_id}.mp4"
         )
 
         repaired_video_path = Path(
@@ -421,7 +602,7 @@ async def repair(
         )
 
         # ------------------------------------------
-        # 8. Replace video audio
+        # 9. Replace video audio
         # ------------------------------------------
 
         replace_video_audio(
@@ -431,7 +612,7 @@ async def repair(
         )
 
         # ------------------------------------------
-        # 9. Return repaired video
+        # 10. Return repaired video
         # ------------------------------------------
 
         return FileResponse(
@@ -442,5 +623,115 @@ async def repair(
 
     finally:
         original_path.unlink(
+            missing_ok=True
+        )
+
+
+# --------------------------------------------------
+# Lip-sync endpoint
+# --------------------------------------------------
+
+@app.post("/lipsync")
+async def lipsync(
+    session_id: str = Form(...),
+):
+    # ----------------------------------------------
+    # 1. Load session
+    # ----------------------------------------------
+
+    session = get_session(
+        session_id
+    )
+
+    video_bytes = session.get(
+        "video_bytes"
+    )
+
+    repaired_audio_bytes = session.get(
+        "repaired_audio_bytes"
+    )
+
+    if video_bytes is None:
+        raise RuntimeError(
+            "Original video is missing "
+            "from session."
+        )
+
+    if repaired_audio_bytes is None:
+        raise RuntimeError(
+            "Repaired audio is missing. "
+            "Run /repair first."
+        )
+
+    # ----------------------------------------------
+    # 2. Save temporary input files
+    # ----------------------------------------------
+
+    original_video_path = Path(
+        f"tmp/{session_id}-lipsync-input.mp4"
+    )
+
+    repaired_audio_path = Path(
+        f"tmp/{session_id}-lipsync-audio.wav"
+    )
+
+    lipsynced_output_path = Path(
+        f"outputs/lipsynced-{session_id}.mp4"
+    )
+
+    original_video_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    lipsynced_output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    original_video_path.write_bytes(
+        video_bytes
+    )
+
+    repaired_audio_path.write_bytes(
+        repaired_audio_bytes
+    )
+
+    try:
+        # ------------------------------------------
+        # 3. Send video + repaired audio
+        #    to Sync Labs
+        # ------------------------------------------
+
+        generate_lipsync(
+            video_path=original_video_path,
+            audio_path=repaired_audio_path,
+            output_path=lipsynced_output_path,
+        )
+
+        # ------------------------------------------
+        # 4. Save result in session
+        # ------------------------------------------
+
+        session[
+            "lipsynced_video_path"
+        ] = str(lipsynced_output_path)
+
+        # ------------------------------------------
+        # 5. Return lip-synced video
+        # ------------------------------------------
+
+        return FileResponse(
+            path=lipsynced_output_path,
+            media_type="video/mp4",
+            filename="lipsynced.mp4",
+        )
+
+    finally:
+        original_video_path.unlink(
+            missing_ok=True
+        )
+
+        repaired_audio_path.unlink(
             missing_ok=True
         )

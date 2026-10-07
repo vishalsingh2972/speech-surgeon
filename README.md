@@ -486,6 +486,149 @@ It treats the existing recording as valuable media that should be **preserved an
 
 ---
 
+# 💰 Cost Comparison: Manual Fix vs Speech Surgeon
+
+How much does a small spoken correction cost today, and how much does Speech Surgeon save?
+
+The numbers below use **current 2026 market rates** for freelance video editors, voice-over talent, and video production, compared against the real API prices of the tools Speech Surgeon uses (Fish Audio and Sync Labs).
+
+> **Headline:**
+> One sentence fixed in a 5-minute video costs about **$35–$300** the manual way.
+> With Speech Surgeon it costs about **$0.05 in API fees**, or about **$6 if you count 10 minutes of your own time**.
+
+## 📐 The Test Case
+
+```text
+Video length:        5 minutes
+What changed:        one sentence (~200 characters)
+Example:             "...in March..."  →  "...in June..."
+```
+
+---
+
+## 🧑‍🔧 Manual Workflow: What It Costs Today
+
+Normally, fixing one sentence means reopening the project, finding the section, getting the line re-recorded, matching the original voice and delivery, replacing the audio, and exporting again.
+
+| Method | Cash cost | Time | What it involves |
+|---|---|---|---|
+| **A. Do it yourself** | $0 cash (≈ $35–$70 of your time) | 1–2 hours | Re-record, match tone and room sound, reopen project, replace audio, re-export |
+| **B. Freelance editor revision** | $50–$200 | 1–3 days | The speaker supplies new audio, the editor patches and re-exports |
+| **C. Editor + voice talent pickup** | $75–$300 | 1–3 days | Editor revision plus a $25–$100 voice-over fee |
+| **D. Full reshoot** | ~$5,000–$7,500 | Days to weeks | Only needed when on-screen content must change |
+
+Rush delivery typically adds another 20–50% on top of the editor's rate.
+
+---
+
+## ⚡ Speech Surgeon: What It Costs
+
+| Step | Cost |
+|---|---|
+| Transcribe a 5-minute video (Fish Audio ASR, $0.36 per audio hour) | ≈ $0.03 |
+| Generate the replacement sentence (Fish Audio S2.1 Pro, $15 per 1M UTF-8 bytes, ~200 bytes) | ≈ $0.003 per attempt |
+| Audio surgery and video remux (FFmpeg, runs locally) | $0 |
+| **Total API cost per fix** | **≈ $0.03–$0.06** |
+| Your time: upload, edit, listen, download (~10 minutes at $35/hr) | ≈ $6 |
+| **Total with your time counted** | **≈ $6** |
+
+Retrying the generation five times still costs well under a cent.
+
+### Optional lip-sync (talking-head videos only)
+
+| Lip-sync scope | Cost |
+|---|---|
+| Patched section only (~10 seconds, lipsync-2) | ≈ $0.40–$0.50 |
+| Whole 5-minute video (lipsync-2) | ≈ $12–$15 |
+| Whole 5-minute video (lipsync-2-pro) | ≈ $20–$25 |
+
+Sync Labs charges per second of video that is actually lip-synced, plus a small subscription fee, so syncing only the patched section keeps the cost close to zero.
+
+---
+
+## 📊 Side by Side: One Fix
+
+```text
+                         CASH COST         YOUR TIME
+────────────────────────────────────────────────────────
+A. Do it yourself        $0                1–2 hours
+B. Editor revision       $50–$200          1–3 days
+C. Editor + voice talent $75–$300          1–3 days
+D. Full reshoot          ~$5,000–$7,500    days to weeks
+────────────────────────────────────────────────────────
+Speech Surgeon           ~$0.05            ~10 minutes
+  all-in (time counted)  ~$6
+```
+
+### What you save per fix
+
+| Compared to | You save | Cheaper by |
+|---|---|---|
+| A. Do it yourself | ~$29–$64 and 50–110 minutes | about 6–12× |
+| B. Editor revision | ~$44–$194 and days of waiting | about 8–33× |
+| C. Editor + voice talent | ~$69–$294 and days of waiting | about 12–50× |
+
+---
+
+## 📚 Side by Side: A Whole Library
+
+The educator example from earlier: **50 videos**, each containing `"updated for 2025"` that must become `"updated for 2026"`.
+
+| Method | Total cost | Total time |
+|---|---|---|
+| A. Do it yourself (1–2 hrs × 50) | ≈ $1,750–$3,500 of your time | 50–100 hours |
+| B. Editor revision round × 50 | $2,500–$10,000 | days to weeks of back-and-forth |
+| **Speech Surgeon** | **≈ $3 API + ≈ $290 of your time** | **≈ 8 hours (50 × 10 min)** |
+
+```text
+Saved on a 50-video update:
+
+vs. doing it yourself      ≈ $1,450–$3,200   and ~40–90 hours
+vs. hiring editors         ≈ $2,200–$9,700   and days of coordination
+```
+
+That is roughly **83–97% cheaper** depending on the baseline, and the saving repeats every year the information changes.
+
+---
+
+## 🧭 Who Saves What
+
+| User | Typical fix | Manual | Speech Surgeon | The real saving |
+|---|---|---|---|---|
+| **Solo creator** | Date, version, price | Free but 1–2 hrs of re-recording | ~$0.05 | **Time**: 10 minutes instead of an afternoon |
+| **Hackathon / application video** | Event name | Free but 30–60 min | ~$0.02 | **Time**, and the video stays polished |
+| **Educator with a course library** | Year, tool version | $2,500–$10,000 for 50 videos | ~$290 for 50 videos | **Money and time** |
+| **Company with a product demo** | Price, feature name | $75–$300 per fix, plus coordination | ~$6 per fix | **Money and turnaround** |
+| **Team with hundreds of videos** | Policy, price, version | Thousands of dollars per update cycle | Mostly review time | **Makes updating practical at all** |
+
+---
+
+## ⚠️ Honest Notes
+
+* **These are estimates for a typical small fix.** Editor hours and the 10-minute operator time are assumptions. The hourly rates, voice-over fees, and API prices come from the sources listed below.
+* **For a solo creator re-recording their own voice, the cash saving is small.** The real value is minutes instead of hours.
+* **Quality still needs a human listen.** The current MVP repairs at the sentence level, so prosody and timing can differ slightly from the original. The 10-minute estimate includes that review.
+* **Lip-sync is the one cost that can grow.** A manual re-record has the same mouth-mismatch problem on talking-head video unless you reshoot or lip-sync as well.
+* **Freelance rates vary by region.** Offshore editors can run around $25/hr versus $100+/hr in major Western markets, which narrows the cash gap but not the time gap.
+* **Fish Audio bills by UTF-8 bytes.** Non-Latin scripts cost more per sentence, but it is still a fraction of a cent.
+* **Closest alternative:** Descript offers text-based editing with Overdub voice cloning for a flat $16–$50 per month. Speech Surgeon's angle is the repair-and-preserve workflow and, long term, bulk library maintenance.
+
+---
+
+## 🔗 Sources
+
+Prices researched in October 2026. Check each provider for current rates.
+
+* Video editor rates and revision costs: [Vidico](https://vidico.com/news/video-editor-cost/), [Krock.io](https://krock.io/blog/stay-creative/how-much-video-editor-should-charge/), [Ruah Creative House](https://ruahcreativehouse.org/blog/video-editing-rates/)
+* Offshore editor rates: [Videotto](https://www.videotto.com/blog/how-much-does-video-editing-cost-global-2026)
+* Voice-over rates and session minimums: [VoiceBros](https://voicebros.com/en/voice-over-rates), [Voices.com profile terms](https://www.voices.com/profile/jimkirkvo/engaging-sincere-voice-over-to-bring-your-brand-to-life)
+* Talking-head production cost per finished minute: [Forasoft](https://www.forasoft.com/learn/elearning-video/articles-elearning/ai-avatars-video-synthesis-for-courses)
+* Fish Audio API pricing: [docs.fish.audio](https://docs.fish.audio/developer-guide/models-pricing/pricing-and-rate-limits)
+* Sync Labs lip-sync pricing: [sync.so billing](https://sync.so/docs/billing), [sync.so calculator](https://sync.so/calculator)
+* Descript plans: [Layer3 Labs](https://www.layer3labs.io/guides/descript-pricing)
+
+---
+
 # 🛠️ What I Actually Built
 
 The current MVP is a working local end-to-end prototype.

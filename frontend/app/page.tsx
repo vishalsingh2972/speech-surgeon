@@ -12,6 +12,7 @@ import {
   Sparkles,
   Upload,
   WandSparkles,
+  ScanFace,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -27,11 +28,17 @@ export default function Home() {
   const [transcript, setTranscript] = useState("");
 
   const [sessionId, setSessionId] = useState("");
+
+  // Audio-repaired video
   const [repairedVideoUrl, setRepairedVideoUrl] = useState("");
 
+  // Final lip-synced video
+  const [lipsyncedVideoUrl, setLipsyncedVideoUrl] = useState("");
+
+  const [lipSyncing, setLipSyncing] = useState(false);
+
   /*
-   * Keep the original video URL alive until it is replaced
-   * or the component actually unmounts.
+   * Keep original video URL alive until replaced/unmounted.
    */
   useEffect(() => {
     return () => {
@@ -42,8 +49,7 @@ export default function Home() {
   }, [originalVideoUrl]);
 
   /*
-   * Keep the repaired video URL separate.
-   * Changing the repaired URL must NOT revoke the original URL.
+   * Repaired audio-only video URL.
    */
   useEffect(() => {
     return () => {
@@ -52,6 +58,17 @@ export default function Home() {
       }
     };
   }, [repairedVideoUrl]);
+
+  /*
+   * Final lip-synced video URL.
+   */
+  useEffect(() => {
+    return () => {
+      if (lipsyncedVideoUrl) {
+        URL.revokeObjectURL(lipsyncedVideoUrl);
+      }
+    };
+  }, [lipsyncedVideoUrl]);
 
   function handleFileChange(
     event: React.ChangeEvent<HTMLInputElement>
@@ -62,24 +79,19 @@ export default function Home() {
       return;
     }
 
-    /*
-     * Create the new preview URL first.
-     */
     const newOriginalVideoUrl =
       URL.createObjectURL(selectedFile);
 
-    /*
-     * Revoke the old original URL.
-     */
     if (originalVideoUrl) {
       URL.revokeObjectURL(originalVideoUrl);
     }
 
-    /*
-     * Revoke any previous repaired video URL.
-     */
     if (repairedVideoUrl) {
       URL.revokeObjectURL(repairedVideoUrl);
+    }
+
+    if (lipsyncedVideoUrl) {
+      URL.revokeObjectURL(lipsyncedVideoUrl);
     }
 
     setFile(selectedFile);
@@ -88,7 +100,9 @@ export default function Home() {
     setTranscript("");
     setSessionId("");
     setRepairedVideoUrl("");
+    setLipsyncedVideoUrl("");
     setLoading(false);
+    setLipSyncing(false);
     setStep("upload");
   }
 
@@ -172,7 +186,7 @@ export default function Home() {
       });
 
       toast.success(
-        "Your video has been repaired."
+        "Speech repaired. Now you can sync the lips."
       );
     } catch (error) {
       console.error(error);
@@ -185,6 +199,86 @@ export default function Home() {
     }
   }
 
+  /*
+   * NEW:
+   * Send the original video + repaired audio to Sync Labs
+   * through the backend /lipsync endpoint.
+   */
+  async function syncLips() {
+    if (!sessionId) {
+      toast.error("No active session.");
+      return;
+    }
+
+    setLipSyncing(true);
+
+    try {
+      const formData = new FormData();
+
+      formData.append("session_id", sessionId);
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/lipsync",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        let message = "Lip-sync failed.";
+
+        try {
+          const errorData = await response.json();
+
+          if (errorData?.detail) {
+            message = errorData.detail;
+          }
+        } catch {
+          // Ignore JSON parsing errors.
+        }
+
+        throw new Error(message);
+      }
+
+      const videoBlob = await response.blob();
+
+      const finalVideoUrl =
+        URL.createObjectURL(videoBlob);
+
+      /*
+       * Remove an older final video if one exists.
+       */
+      if (lipsyncedVideoUrl) {
+        URL.revokeObjectURL(lipsyncedVideoUrl);
+      }
+
+      setLipsyncedVideoUrl(finalVideoUrl);
+
+      toast.success(
+        "Lip-sync complete. Your final video is ready."
+      );
+
+      confetti({
+        particleCount: 180,
+        spread: 100,
+        origin: {
+          y: 0.55,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not sync the lips."
+      );
+    } finally {
+      setLipSyncing(false);
+    }
+  }
+
   function startOver() {
     if (originalVideoUrl) {
       URL.revokeObjectURL(originalVideoUrl);
@@ -194,26 +288,38 @@ export default function Home() {
       URL.revokeObjectURL(repairedVideoUrl);
     }
 
+    if (lipsyncedVideoUrl) {
+      URL.revokeObjectURL(lipsyncedVideoUrl);
+    }
+
     setFile(null);
     setOriginalVideoUrl("");
     setTranscript("");
     setSessionId("");
     setRepairedVideoUrl("");
+    setLipsyncedVideoUrl("");
     setLoading(false);
+    setLipSyncing(false);
     setStep("upload");
   }
 
   function downloadVideo() {
-    if (!repairedVideoUrl) {
+    const videoToDownload =
+      lipsyncedVideoUrl || repairedVideoUrl;
+
+    if (!videoToDownload) {
       return;
     }
 
     const link =
       document.createElement("a");
 
-    link.href = repairedVideoUrl;
+    link.href = videoToDownload;
+
     link.download =
-      "speech-surgeon-repaired.mp4";
+      lipsyncedVideoUrl
+        ? "speech-surgeon-lipsynced.mp4"
+        : "speech-surgeon-repaired.mp4";
 
     document.body.appendChild(link);
 
@@ -382,8 +488,6 @@ export default function Home() {
 
                 {!originalVideoUrl ? (
 
-                  /* EMPTY UPLOAD STATE */
-
                   <label className="group flex min-h-72 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/70 px-6 transition-all hover:border-zinc-500 hover:bg-zinc-950">
 
                     <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 transition-transform group-hover:scale-105">
@@ -410,8 +514,6 @@ export default function Home() {
                   </label>
 
                 ) : (
-
-                  /* VIDEO PREVIEW STATE */
 
                   <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
 
@@ -563,9 +665,7 @@ export default function Home() {
                   <textarea
                     value={transcript}
                     onChange={(event) => {
-                      setTranscript(
-                        event.target.value
-                      );
+                      setTranscript(event.target.value);
                     }}
                     className="min-h-56 w-full resize-y rounded-xl bg-transparent p-5 text-sm leading-8 text-zinc-200 outline-none placeholder:text-zinc-700"
                     placeholder="Your transcript will appear here..."
@@ -739,11 +839,11 @@ export default function Home() {
                     <div className="mb-3 flex items-center justify-between px-1">
 
                       <span className="text-sm font-medium">
-                        Repaired
+                        Repaired audio
                       </span>
 
                       <span className="text-xs text-zinc-400">
-                        After
+                        Audio only
                       </span>
 
                     </div>
@@ -760,16 +860,104 @@ export default function Home() {
 
                 </div>
 
+                {/* LIP SYNC SECTION */}
+
+                {!lipsyncedVideoUrl ? (
+                  <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5">
+
+                    <div className="flex items-start gap-4">
+
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900">
+
+                        <ScanFace className="h-5 w-5 text-zinc-300" />
+
+                      </div>
+
+                      <div>
+
+                        <h3 className="text-sm font-semibold text-zinc-200">
+                          Make the lips match
+                        </h3>
+
+                        <p className="mt-1 text-xs leading-5 text-zinc-500">
+                          The speech is already repaired. Now Sync Labs
+                          will adjust the mouth movements to match the new
+                          audio.
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={lipSyncing}
+                      onClick={syncLips}
+                      className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+
+                      {lipSyncing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Syncing lips...
+                        </>
+                      ) : (
+                        <>
+                          <ScanFace className="h-4 w-4" />
+                          Sync lips
+                        </>
+                      )}
+
+                    </button>
+
+                    <p className="mt-3 text-center text-[11px] text-zinc-700">
+                      This uses your Sync Labs generation.
+                    </p>
+
+                  </div>
+                ) : (
+                  <div className="mt-6 rounded-2xl border border-zinc-700 bg-zinc-950 p-3">
+
+                    <div className="mb-3 flex items-center justify-between px-1">
+
+                      <div className="flex items-center gap-2">
+
+                        <Check className="h-4 w-4 text-zinc-300" />
+
+                        <span className="text-sm font-medium">
+                          Final lip-synced video
+                        </span>
+
+                      </div>
+
+                      <span className="text-xs text-zinc-400">
+                        Complete
+                      </span>
+
+                    </div>
+
+                    <video
+                      controls
+                      preload="metadata"
+                      playsInline
+                      src={lipsyncedVideoUrl}
+                      className="w-full rounded-xl"
+                    />
+
+                  </div>
+                )}
+
                 {/* EXPLANATION */}
 
                 <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-center">
 
                   <p className="text-xs text-zinc-500">
-                    Original video frames stay untouched.
+                    Original video frames are used as the base.
                   </p>
 
                   <p className="mt-1 text-xs text-zinc-600">
-                    Only the spoken audio was surgically repaired.
+                    First the speech is repaired, then the lips are synced
+                    to the new speech.
                   </p>
 
                 </div>
@@ -781,12 +969,18 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={downloadVideo}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-zinc-200"
+                    disabled={
+                      !lipsyncedVideoUrl &&
+                      !repairedVideoUrl
+                    }
+                    className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
                   >
 
                     <Download className="h-4 w-4" />
 
-                    Download repaired video
+                    {lipsyncedVideoUrl
+                      ? "Download final video"
+                      : "Download repaired video"}
 
                   </button>
 
